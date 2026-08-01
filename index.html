@@ -59,6 +59,7 @@
         document.getElementById('konfigurasi').style.display = 'block';
     }
 
+    // ---------- KONFIGURASI ----------
     function simpanKonfigurasi() {
         const inputToken = document.getElementById('tokenInput').value.trim();
         const inputRepo = document.getElementById('repoInput').value.trim();
@@ -75,6 +76,7 @@
         muatDaftarLink();
     }
 
+    // ---------- AMBIL DATA & SHA TERBARU ----------
     async function getFileSha() {
         try {
             const response = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
@@ -90,6 +92,7 @@
         }
     }
 
+    // ---------- MUAT & TAMPILKAN DAFTAR LINK ----------
     async function muatDaftarLink() {
         const daftarEl = document.getElementById('daftarLink');
         daftarEl.innerHTML = '<li>Memuat...</li>';
@@ -110,7 +113,6 @@
             return;
         }
 
-        // Pecah "username/repo" menjadi username dan nama repo
         const [username, repoName] = repo.split('/');
 
         kodeList.forEach(kode => {
@@ -127,14 +129,13 @@
             daftarEl.appendChild(li);
         });
 
-        // Pasang event listener untuk semua tombol salin
+        // Pasang event listener untuk tombol salin
         document.querySelectorAll('.btn-copy').forEach(btn => {
             btn.addEventListener('click', function() {
                 const link = this.getAttribute('data-link');
                 navigator.clipboard.writeText(link).then(() => {
                     setStatus(`✅ Link disalin: ${link}`, 'success');
                 }).catch(() => {
-                    // Fallback untuk browser lama
                     const input = document.createElement('input');
                     input.value = link;
                     document.body.appendChild(input);
@@ -147,47 +148,69 @@
         });
     }
 
+    // ---------- TAMBAH LINK BARU ----------
     document.getElementById('formTambah').addEventListener('submit', async function(e) {
         e.preventDefault();
         const kode = document.getElementById('kodeBaru').value.trim();
         const url = document.getElementById('urlBaru').value.trim();
         if (!kode || !url) return;
+
         setStatus('Menambahkan...', '');
         try {
-            let db = await getFileSha();
-            if (db[kode]) {
-                setStatus('❌ Kode sudah ada. Gunakan kode lain.', 'error');
-                return;
-            }
-            db[kode] = url;
-            await updateDataJson(db, `Menambahkan short link: ${kode}`);
+            await tambahLink(kode, url);
             document.getElementById('kodeBaru').value = '';
             document.getElementById('urlBaru').value = '';
-            await muatDaftarLink();
             setStatus('✅ Link berhasil ditambahkan!', 'success');
         } catch (err) {
             setStatus('❌ ' + err.message, 'error');
         }
+        await muatDaftarLink();
     });
 
-    async function hapusLink(kode) {
+    async function tambahLink(kode, url, cobaUlang = true) {
+        let db = await getFileSha();
+        if (db[kode]) {
+            throw new Error('Kode sudah ada. Gunakan kode lain.');
+        }
+        db[kode] = url;
+        try {
+            await updateDataJson(db, `Menambahkan short link: ${kode}`);
+        } catch (err) {
+            if (err.message === 'SHA_MISMATCH' && cobaUlang) {
+                // Konflik SHA, muat ulang dan coba lagi
+                await muatDaftarLink();
+                return tambahLink(kode, url, false); // coba sekali lagi tanpa loop tak terbatas
+            }
+            throw err;
+        }
+    }
+
+    // ---------- HAPUS LINK ----------
+    async function hapusLink(kode, cobaUlang = true) {
         if (!confirm(`Yakin hapus link "${kode}"?`)) return;
+
         setStatus('Menghapus...', '');
         try {
             let db = await getFileSha();
             if (!db[kode]) {
-                setStatus('❌ Kode tidak ditemukan.', 'error');
-                return;
+                throw new Error('Kode tidak ditemukan.');
             }
             delete db[kode];
             await updateDataJson(db, `Menghapus short link: ${kode}`);
             await muatDaftarLink();
             setStatus(`✅ Link "${kode}" berhasil dihapus.`, 'success');
         } catch (err) {
+            if (err.message === 'SHA_MISMATCH' && cobaUlang) {
+                setStatus('🔄 Data sudah berubah, menyegarkan...', '');
+                await muatDaftarLink();
+                return hapusLink(kode, false); // coba lagi
+            }
             setStatus('❌ ' + err.message, 'error');
+            await muatDaftarLink(); // refresh daftar meskipun gagal
         }
     }
 
+    // ---------- UPDATE DATA.JSON (DENGAN DETEKSI SHA KONFLIK) ----------
     async function updateDataJson(dbObject, commitMessage) {
         const content = JSON.stringify(dbObject, null, 2);
         const base64Content = btoa(unescape(encodeURIComponent(content)));
@@ -196,6 +219,7 @@
             content: base64Content,
             sha: dataJsonSha
         };
+
         const response = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
             method: 'PUT',
             headers: {
@@ -204,14 +228,22 @@
             },
             body: JSON.stringify(body)
         });
+
         if (!response.ok) {
             const errorData = await response.json();
+            // Deteksi SHA mismatch (biasanya status 409 atau 422 dengan pesan "does not match")
+            if (response.status === 409 || response.status === 422 ||
+                (errorData.message && errorData.message.includes('does not match'))) {
+                throw new Error('SHA_MISMATCH'); // lempar error khusus
+            }
             throw new Error(errorData.message || 'Gagal menyimpan perubahan.');
         }
+
         const result = await response.json();
-        dataJsonSha = result.content.sha;
+        dataJsonSha = result.content.sha; // perbarui SHA dengan yang baru
     }
 
+    // ---------- STATUS BAR & TOMBOL REFRESH ----------
     function setStatus(pesan, tipe) {
         const el = document.getElementById('status');
         el.textContent = pesan;
@@ -220,6 +252,21 @@
             setTimeout(() => { if (el.textContent === pesan) el.textContent = ''; }, 5000);
         }
     }
+
+    // Tambahkan tombol refresh di atas daftar (opsional, tapi membantu)
+    document.addEventListener('DOMContentLoaded', function() {
+        const headerDaftar = document.querySelector('#manajemen h2');
+        if (headerDaftar) {
+            const btnRefresh = document.createElement('button');
+            btnRefresh.textContent = '🔄 Refresh Data';
+            btnRefresh.style.marginLeft = '1em';
+            btnRefresh.onclick = () => {
+                setStatus('Memperbarui...', '');
+                muatDaftarLink().then(() => setStatus('✅ Data terbaru dimuat.', 'success'));
+            };
+            headerDaftar.appendChild(btnRefresh);
+        }
+    });
 </script>
 </body>
 </html>
