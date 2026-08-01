@@ -70,3 +70,39 @@ li a {
 .status.success { background: #e6ffed; color: #22863a; }
 .status.error { background: #ffeef0; color: #cb2431; }
 small { font-weight: normal; }
+
+.btn-group {
+    display: flex;
+    gap: 0.5em;
+    align-items: center;
+    margin-left: auto; /* dorong ke kanan */
+}
+
+.btn-copy {
+    background: #2ea44f;
+    color: white;
+    border: none;
+    padding: 0.3em 0.6em;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 0.85em;
+}
+
+.btn-copy:hover {
+    background: #22863a;
+}
+
+/* Penyesuaian item daftar agar tombol tetap di kanan */
+li {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5em;
+}
+li strong {
+    min-width: 60px;
+}
+li a {
+    flex: 1;
+    word-break: break-all;
+}
