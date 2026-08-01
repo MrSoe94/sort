@@ -3,48 +3,113 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Redirecting...</title>
+    
+    <!-- Meta default (fallback untuk semua link) -->
+    <title>Short Link - sort</title>
+    <meta property="og:title" content="Short Link - sort">
+    <meta property="og:description" content="Mengalihkan ke tautan asli...">
+    <meta property="og:image" content="https://github.com/MrSoe94/sort/blob/main/logo.png"> <!-- ganti dengan gambar kamu -->
+    <meta property="og:type" content="website">
+    <meta name="twitter:card" content="summary">
+    <meta name="twitter:title" content="Short Link - sort">
+    <meta name="twitter:description" content="Mengalihkan ke tautan asli...">
+    
     <style>
-        body { font-family: sans-serif; text-align: center; padding: 2em; background: #f5f5f5; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 3em;
+            background: #f9f9f9;
+            color: #333;
+        }
+        .container {
+            max-width: 500px;
+            margin: auto;
+            background: white;
+            padding: 2em;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .loader {
+            border: 4px solid #e0e0e0;
+            border-top: 4px solid #0366d6;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 1em auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .btn {
+            display: inline-block;
+            margin-top: 1em;
+            padding: 0.5em 1.5em;
+            background: #0366d6;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
-    <h2>Mengalihkan...</h2>
-    <p id="pesan">Mohon tunggu sebentar.</p>
+    <div class="container">
+        <h1 id="judulHalaman">Mengalihkan...</h1>
+        <p id="pesan">Mohon tunggu sebentar.</p>
+        <div id="loader" class="loader"></div>
+        <p id="linkManual"></p>
+    </div>
 
     <script>
         (async function() {
-            // Ambil semua bagian path (contoh: "/sort/Absensi-Sekolah" -> ["sort", "Absensi-Sekolah"])
             const segmen = window.location.pathname.split('/').filter(Boolean);
-            const repo = segmen[0] || '';   // "sort"
-            const kode = segmen[1] || '';   // "Absensi-Sekolah"
-
+            const repo = segmen[0] || 'sort';   // ganti jika perlu
+            const kode = segmen[1] || '';
+            
+            // Fallback jika tidak ada kode
             if (!kode) {
-                document.body.innerHTML = '<h2>404 - Tidak ada kode</h2>';
+                document.getElementById('judulHalaman').textContent = '404 - Tidak ada kode';
+                document.getElementById('pesan').textContent = 'Link tidak valid.';
+                document.getElementById('loader').style.display = 'none';
                 return;
             }
 
             const dataUrl = '/' + repo + '/data.json';
-            console.log('Fetching database dari:', dataUrl);
-
             try {
                 const response = await fetch(dataUrl);
-                if (!response.ok) throw new Error('Gagal memuat database (status ' + response.status + ')');
+                if (!response.ok) throw new Error('Gagal memuat data');
                 const db = await response.json();
-                console.log('Database:', db);
-
                 const urlTujuan = db[kode];
+                
                 if (urlTujuan) {
-                    window.location.replace(urlTujuan);
+                    // === Update metadata dinamis (untuk bot yang mengeksekusi JS) ===
+                    document.title = `${kode} - Short Link`;
+                    // Meta OG
+                    document.querySelector('meta[property="og:title"]')?.setAttribute('content', `${kode} - Short Link`);
+                    document.querySelector('meta[property="og:description"]')?.setAttribute('content', `Klik untuk membuka ${urlTujuan}`);
+                    document.querySelector('meta[name="twitter:title"]')?.setAttribute('content', `${kode} - Short Link`);
+                    document.querySelector('meta[name="twitter:description"]')?.setAttribute('content', `Klik untuk membuka ${urlTujuan}`);
+                    
+                    // Tampilkan halaman perantara yang informatif
+                    document.getElementById('judulHalaman').textContent = `🔗 ${kode}`;
+                    document.getElementById('pesan').textContent = `Mengalihkan ke: ${urlTujuan}`;
+                    document.getElementById('linkManual').innerHTML = 
+                        `<small>Jika tidak otomatis, <a href="${urlTujuan}" class="btn">Klik di sini</a></small>`;
+                    
+                    // Redirect setelah 1,5 detik (memberi waktu bagi crawler membaca meta)
+                    setTimeout(() => {
+                        window.location.replace(urlTujuan);
+                    }, 1500);
                 } else {
-                    document.getElementById('pesan').textContent =
-                        `Maaf, link pendek "/${kode}" tidak ditemukan di database.`;
-                    document.querySelector('h2').textContent = '404 - Tidak Ditemukan';
-                    console.log('Kode yang dicari:', kode, 'tersedia:', Object.keys(db));
+                    // Link tidak ditemukan
+                    document.getElementById('judulHalaman').textContent = '404 - Tidak Ditemukan';
+                    document.getElementById('pesan').textContent = `Maaf, link pendek "/${kode}" tidak tersedia.`;
+                    document.getElementById('loader').style.display = 'none';
                 }
             } catch (err) {
-                document.getElementById('pesan').textContent = 'Gagal menghubungi server data.';
-                console.error('Error:', err);
+                document.getElementById('judulHalaman').textContent = 'Terjadi Kesalahan';
+                document.getElementById('pesan').textContent = 'Tidak dapat menghubungi server data.';
+                document.getElementById('loader').style.display = 'none';
+                console.error(err);
             }
         })();
     </script>
