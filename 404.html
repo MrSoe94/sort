@@ -1,25 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="id">
 <head>
-  <meta charset="utf-8">
-  <title>Redirecting...</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Redirecting...</title>
+    <style>
+        body { font-family: sans-serif; text-align: center; padding: 2em; background: #f5f5f5; }
+    </style>
 </head>
 <body>
-  <script>
-    (async function() {
-      // Ambil kode dari path (buang leading '/')
-      let code = window.location.pathname.replace(/^\//, '');
-      
-      // Fetch database
-      const res = await fetch('/data.json');
-      const db = await res.json();
+    <h2>Mengalihkan...</h2>
+    <p id="pesan">Mohon tunggu sebentar.</p>
 
-      if (db[code]) {
-        window.location.replace(db[code]);
-      } else {
-        document.body.innerHTML = '<h2>Link tidak ditemukan</h2>';
-      }
-    })();
-  </script>
+    <script>
+        (async function() {
+            // Ambil path lengkap, pisahkan segmennya
+            const segmen = window.location.pathname.split('/').filter(Boolean);
+            // segmen[0] = nama repo (misal "shortlink"), segmen[1] = kode pendek
+            const repo = segmen[0] || '';
+            const kode = segmen[1] || '';
+
+            // Tentukan base URL untuk data.json
+            const base = '/' + repo;                     // contoh: /shortlink
+            const dataUrl = base + '/data.json';         // /shortlink/data.json
+
+            try {
+                const response = await fetch(dataUrl);
+                if (!response.ok) throw new Error('Gagal memuat database');
+                const db = await response.json();
+
+                if (db[kode]) {
+                    window.location.replace(db[kode]);   // Redirect langsung
+                } else {
+                    document.getElementById('pesan').textContent =
+                        `Maaf, link pendek "/${kode}" tidak ditemukan.`;
+                    document.querySelector('h2').textContent = '404 - Tidak Ditemukan';
+                }
+            } catch (err) {
+                document.getElementById('pesan').textContent =
+                    'Terjadi kesalahan saat menghubungi server data.';
+                console.error(err);
+            }
+        })();
+    </script>
 </body>
 </html>
