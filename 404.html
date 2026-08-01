@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>Redirecting...</title>
+</head>
+<body>
+  <script>
+    (async function() {
+      // Ambil kode dari path (buang leading '/')
+      let code = window.location.pathname.replace(/^\//, '');
+      
+      // Fetch database
+      const res = await fetch('/data.json');
+      const db = await res.json();
+
+      if (db[code]) {
+        window.location.replace(db[code]);
+      } else {
+        document.body.innerHTML = '<h2>Link tidak ditemukan</h2>';
+      }
+    })();
+  </script>
+</body>
+</html>
