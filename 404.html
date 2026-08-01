@@ -14,32 +14,37 @@
 
     <script>
         (async function() {
-            // Ambil path lengkap, pisahkan segmennya
+            // Ambil semua bagian path (contoh: "/sort/Absensi-Sekolah" -> ["sort", "Absensi-Sekolah"])
             const segmen = window.location.pathname.split('/').filter(Boolean);
-            // segmen[0] = nama repo (misal "shortlink"), segmen[1] = kode pendek
-            const repo = segmen[0] || '';
-            const kode = segmen[1] || '';
+            const repo = segmen[0] || '';   // "sort"
+            const kode = segmen[1] || '';   // "Absensi-Sekolah"
 
-            // Tentukan base URL untuk data.json
-            const base = '/' + repo;                     // contoh: /shortlink
-            const dataUrl = base + '/data.json';         // /shortlink/data.json
+            if (!kode) {
+                document.body.innerHTML = '<h2>404 - Tidak ada kode</h2>';
+                return;
+            }
+
+            const dataUrl = '/' + repo + '/data.json';
+            console.log('Fetching database dari:', dataUrl);
 
             try {
                 const response = await fetch(dataUrl);
-                if (!response.ok) throw new Error('Gagal memuat database');
+                if (!response.ok) throw new Error('Gagal memuat database (status ' + response.status + ')');
                 const db = await response.json();
+                console.log('Database:', db);
 
-                if (db[kode]) {
-                    window.location.replace(db[kode]);   // Redirect langsung
+                const urlTujuan = db[kode];
+                if (urlTujuan) {
+                    window.location.replace(urlTujuan);
                 } else {
                     document.getElementById('pesan').textContent =
-                        `Maaf, link pendek "/${kode}" tidak ditemukan.`;
+                        `Maaf, link pendek "/${kode}" tidak ditemukan di database.`;
                     document.querySelector('h2').textContent = '404 - Tidak Ditemukan';
+                    console.log('Kode yang dicari:', kode, 'tersedia:', Object.keys(db));
                 }
             } catch (err) {
-                document.getElementById('pesan').textContent =
-                    'Terjadi kesalahan saat menghubungi server data.';
-                console.error(err);
+                document.getElementById('pesan').textContent = 'Gagal menghubungi server data.';
+                console.error('Error:', err);
             }
         })();
     </script>
