@@ -5,132 +5,46 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin Short Link</title>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            background: #f5f5f5;
-            margin: 0;
-            padding: 2em;
-        }
-        .container {
-            max-width: 650px;
-            margin: auto;
-            background: white;
-            padding: 2em;
-            border-radius: 8px;
-            box-shadow: 0 2px 12px rgba(0,0,0,0.08);
-        }
+        /* === GLOBAL === */
+        body { font-family: Arial, sans-serif; background: #f5f5f5; margin: 0; padding: 2em; }
+        .container { max-width: 650px; margin: auto; background: white; padding: 2em; border-radius: 8px; box-shadow: 0 2px 12px rgba(0,0,0,0.08); }
         h1 { margin-top: 0; color: #333; }
         h2 { font-size: 1.2em; margin: 1.5em 0 0.8em; color: #555; }
-        #konfigurasi label {
-            display: block;
-            margin-bottom: 1em;
-            font-weight: bold;
-            color: #333;
+        #konfigurasi label { display: block; margin-bottom: 1em; font-weight: bold; color: #333; }
+        input[type="text"], input[type="url"], input[type="password"] {
+            width: 100%; padding: 0.6em; margin-top: 0.3em; box-sizing: border-box; border: 1px solid #ccc; border-radius: 4px;
         }
-        input[type="text"],
-        input[type="url"],
-        input[type="password"] {
-            width: 100%;
-            padding: 0.6em;
-            margin-top: 0.3em;
-            box-sizing: border-box;
-            border: 1px solid #ccc;
-            border-radius: 4px;
-        }
-        button {
-            padding: 0.6em 1.2em;
-            background: #0366d6;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.95em;
-            transition: background 0.2s;
-        }
+        button { padding: 0.6em 1.2em; background: #0366d6; color: white; border: none; border-radius: 4px; cursor: pointer; font-size: 0.95em; transition: background 0.2s; }
         button:hover { background: #024ea4; }
-        ul {
-            list-style: none;
-            padding: 0;
-            margin: 0;
-        }
-        li {
-            padding: 0.8em 0;
-            border-bottom: 1px solid #eee;
-            display: flex;
-            align-items: center;
-            flex-wrap: wrap;
-            gap: 0.5em;
-        }
-        li strong {
-            min-width: 70px;
-            font-weight: bold;
-            color: #333;
-        }
-        li a {
-            flex: 1;
-            word-break: break-all;
-            color: #0366d6;
-            text-decoration: none;
-            margin-right: 0.5em;
-        }
+        ul { list-style: none; padding: 0; margin: 0; }
+        li { padding: 0.8em 0; border-bottom: 1px solid #eee; display: flex; align-items: center; flex-wrap: wrap; gap: 0.5em; }
+        li strong { min-width: 70px; font-weight: bold; color: #333; }
+        li a { flex: 1; word-break: break-all; color: #0366d6; text-decoration: none; margin-right: 0.5em; }
         li a:hover { text-decoration: underline; }
-        .btn-group {
-            display: flex;
-            gap: 0.4em;
-            align-items: center;
-            margin-left: auto;
-        }
-        .btn-copy {
-            background: #2ea44f;
-            color: white;
-            border: none;
-            padding: 0.4em 0.7em;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
+        .btn-group { display: flex; gap: 0.4em; align-items: center; margin-left: auto; }
+        .btn-copy { background: #2ea44f; color: white; border: none; padding: 0.4em 0.7em; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
         .btn-copy:hover { background: #22863a; }
-        .btn-hapus {
-            background: #d73a49;
-            color: white;
-            border: none;
-            padding: 0.4em 0.7em;
-            border-radius: 4px;
-            cursor: pointer;
-            font-size: 0.85em;
-        }
+        .btn-hapus { background: #d73a49; color: white; border: none; padding: 0.4em 0.7em; border-radius: 4px; cursor: pointer; font-size: 0.85em; }
         .btn-hapus:hover { background: #b32d3a; }
-        .status {
-            margin-top: 1.5em;
-            padding: 0.8em;
-            border-radius: 4px;
-            font-size: 0.95em;
-        }
+        .status { margin-top: 1.5em; padding: 0.8em; border-radius: 4px; font-size: 0.95em; }
         .status.success { background: #e6ffed; color: #22863a; border: 1px solid #b7ebd0; }
         .status.error { background: #ffeef0; color: #cb2431; border: 1px solid #f5c6cb; }
-        small { font-weight: normal; color: #555; }
-        .auto-reload-indicator {
-            font-size: 0.8em;
-            color: #888;
-            margin-left: 1em;
-        }
+        .auto-reload-indicator { font-size: 0.8em; color: #888; margin-left: 1em; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>🔗 Admin Short Link <span id="autoReloadBadge" class="auto-reload-indicator" style="display:none;">🔄 Auto-Reload aktif</span></h1>
 
-        <!-- Konfigurasi Token & Repo -->
+        <!-- Konfigurasi -->
         <section id="konfigurasi" style="display: none;">
             <h2>Pengaturan Awal</h2>
-            <p>Masukkan informasi repositori GitHub-mu agar bisa menyimpan link secara otomatis.</p>
-            <label>
-                Token GitHub (classic) dengan izin <code>repo</code> atau <code>public_repo</code>:<br>
+            <p>Masukkan informasi repositori GitHub-mu.</p>
+            <label>Token GitHub (classic) dengan izin <code>repo</code> atau <code>public_repo</code>:<br>
                 <input type="password" id="tokenInput" placeholder="ghp_xxxx..." size="40">
                 <small><a href="https://github.com/settings/tokens" target="_blank">Buat token baru</a></small>
             </label>
-            <label>
-                Nama Repositori (format: <code>username/nama-repo</code>):<br>
+            <label>Nama Repositori (format: <code>username/nama-repo</code>):<br>
                 <input type="text" id="repoInput" placeholder="username/sort">
             </label>
             <button onclick="simpanKonfigurasi()">Simpan & Mulai</button>
@@ -140,31 +54,28 @@
         <section id="manajemen" style="display: none;">
             <h2>Tambah Link Baru</h2>
             <form id="formTambah">
-                <input type="text" id="kodeBaru" placeholder="Kode pendek (spasi jadi -)" required>
+                <input type="text" id="kodeBaru" placeholder="Kode pendek (spasi akan jadi -)" required>
                 <input type="url" id="urlBaru" placeholder="URL lengkap (https://...)" required style="margin-top: 0.5em;">
                 <button type="submit" style="margin-top: 0.8em;">Tambah</button>
             </form>
 
-            <h2>
-                Daftar Link
+            <h2>Daftar Link
                 <button id="btnRefresh" style="margin-left: 1em; font-size: 0.85em; background: #6c757d;">🔄 Refresh Data</button>
                 <button id="btnToggleAutoReload" style="margin-left: 0.5em; font-size: 0.85em; background: #17a2b8;">⏸️ Matikan Auto</button>
             </h2>
-            <ul id="daftarLink">
-                <li>Memuat...</li>
-            </ul>
+            <ul id="daftarLink"><li>Memuat...</li></ul>
         </section>
 
         <div id="status" class="status"></div>
     </div>
 
     <script>
-        // ========== KONFIGURASI ==========
+        // ========== INISIALISASI ==========
         let token = localStorage.getItem('gh_token');
         let repo = localStorage.getItem('gh_repo');
         let dataJsonSha = null;
         let pollingInterval = null;
-        let autoReloadEnabled = true;  // default nyala
+        let autoReloadEnabled = true;
 
         if (token && repo) {
             document.getElementById('konfigurasi').style.display = 'none';
@@ -173,18 +84,12 @@
         } else {
             document.getElementById('konfigurasi').style.display = 'block';
         }
-
-        // Tampilkan badge auto-reload
         document.getElementById('autoReloadBadge').style.display = 'inline';
 
-        // ========== SIMPAN KONFIGURASI ==========
         function simpanKonfigurasi() {
             const inputToken = document.getElementById('tokenInput').value.trim();
             const inputRepo = document.getElementById('repoInput').value.trim();
-            if (!inputToken || !inputRepo) {
-                alert('Mohon isi token dan nama repo.');
-                return;
-            }
+            if (!inputToken || !inputRepo) { alert('Mohon isi token dan nama repo.'); return; }
             localStorage.setItem('gh_token', inputToken);
             localStorage.setItem('gh_repo', inputRepo);
             token = inputToken;
@@ -194,37 +99,31 @@
             muatDaftarLink().then(() => startPolling());
         }
 
-        // ========== AMBIL DATA & SHA ==========
+        // ========== AMBIL DATA ==========
         async function getFileSha() {
             const response = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
                 headers: { Authorization: `token ${token}` }
             });
-            if (!response.ok) throw new Error('Gagal mengambil data dari GitHub. Cek token/repo.');
+            if (!response.ok) throw new Error('Gagal mengambil data. Cek token/repo.');
             const data = await response.json();
             dataJsonSha = data.sha;
             return JSON.parse(atob(data.content));
         }
 
-        // ========== MUAT DAFTAR LINK ==========
         async function muatDaftarLink() {
             const daftarEl = document.getElementById('daftarLink');
             daftarEl.innerHTML = '<li>Memuat...</li>';
             try {
                 const db = await getFileSha();
                 renderDaftar(db);
-            } catch {
-                daftarEl.innerHTML = '<li>Gagal memuat. Periksa token dan koneksi.</li>';
-            }
+            } catch { daftarEl.innerHTML = '<li>Gagal memuat.</li>'; }
         }
 
         function renderDaftar(db) {
             const daftarEl = document.getElementById('daftarLink');
             daftarEl.innerHTML = '';
             const kodeList = Object.keys(db);
-            if (kodeList.length === 0) {
-                daftarEl.innerHTML = '<li>Belum ada link.</li>';
-                return;
-            }
+            if (kodeList.length === 0) { daftarEl.innerHTML = '<li>Belum ada link.</li>'; return; }
             const [username, repoName] = repo.split('/');
             kodeList.forEach(kode => {
                 const shortLink = `https://${username}.github.io/${repoName}/${kode}`;
@@ -235,17 +134,14 @@
                     <div class="btn-group">
                         <button class="btn-copy" data-link="${shortLink}">📋 Salin</button>
                         <button onclick="hapusLink('${kode}')" class="btn-hapus">Hapus</button>
-                    </div>
-                `;
+                    </div>`;
                 daftarEl.appendChild(li);
             });
-
             document.querySelectorAll('.btn-copy').forEach(btn => {
                 btn.addEventListener('click', function() {
                     const link = this.getAttribute('data-link');
-                    navigator.clipboard.writeText(link).then(() => {
-                        setStatus(`✅ Link disalin: ${link}`, 'success');
-                    }).catch(() => {
+                    navigator.clipboard.writeText(link).then(() => setStatus(`✅ Link disalin: ${link}`, 'success'))
+                    .catch(() => {
                         const input = document.createElement('input');
                         input.value = link;
                         document.body.appendChild(input);
@@ -258,28 +154,31 @@
             });
         }
 
-        // ========== AUTO-REPLACE SPASI ==========
+        // ========== AUTO GANTI SPASI JADI "-" (DIPANGGIL SAAT HALAMAN SIAP) ==========
         function setupAutoDash() {
             const inputKode = document.getElementById('kodeBaru');
             if (!inputKode) return;
+            // Saat mengetik
             inputKode.addEventListener('input', function() {
                 this.value = this.value.replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
             });
+            // Saat meninggalkan kolom
             inputKode.addEventListener('blur', function() {
                 this.value = this.value.trim().replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
             });
         }
 
-        // ========== TAMBAH LINK (dengan retry) ==========
+        // Panggil setup
+        setupAutoDash();
+
+        // ========== TAMBAH LINK (DENGAN RETRY) ==========
         document.getElementById('formTambah').addEventListener('submit', async function(e) {
             e.preventDefault();
             const kodeInput = document.getElementById('kodeBaru');
+            // Tetap bersihkan spasi sebelum submit (jika fitur auto-ganti tidak berjalan)
             const kode = kodeInput.value.trim().replace(/\s+/g, '-').replace(/^-+|-+$/g, '');
             const url = document.getElementById('urlBaru').value.trim();
-            if (!kode || !url) {
-                setStatus('❌ Kode dan URL harus diisi.', 'error');
-                return;
-            }
+            if (!kode || !url) { setStatus('❌ Kode dan URL harus diisi.', 'error'); return; }
             kodeInput.value = kode;
             setStatus('Menambahkan...', '');
             try {
@@ -287,19 +186,16 @@
                 document.getElementById('kodeBaru').value = '';
                 document.getElementById('urlBaru').value = '';
                 setStatus('✅ Link berhasil ditambahkan!', 'success');
-            } catch (err) {
-                setStatus('❌ ' + err.message, 'error');
-            }
+            } catch (err) { setStatus('❌ ' + err.message, 'error'); }
             await muatDaftarLink();
         });
 
         async function tambahLinkDenganRetry(kode, url, cobaUlang = true) {
             let db = await getFileSha();
-            if (db[kode]) throw new Error('Kode sudah ada. Gunakan kode lain.');
+            if (db[kode]) throw new Error('Kode sudah ada.');
             db[kode] = url;
-            try {
-                await updateDataJson(db, `Menambahkan short link: ${kode}`);
-            } catch (err) {
+            try { await updateDataJson(db, `Menambahkan short link: ${kode}`); }
+            catch (err) {
                 if (err.message === 'SHA_MISMATCH' && cobaUlang) {
                     await muatDaftarLink();
                     return tambahLinkDenganRetry(kode, url, false);
@@ -308,7 +204,7 @@
             }
         }
 
-        // ========== HAPUS LINK (dengan retry) ==========
+        // ========== HAPUS LINK ==========
         async function hapusLink(kode, cobaUlang = true) {
             if (!confirm(`Yakin hapus link "${kode}"?`)) return;
             setStatus('Menghapus...', '');
@@ -334,44 +230,32 @@
         async function updateDataJson(dbObject, commitMessage) {
             const content = JSON.stringify(dbObject, null, 2);
             const base64Content = btoa(unescape(encodeURIComponent(content)));
-            const body = {
-                message: commitMessage,
-                content: base64Content,
-                sha: dataJsonSha
-            };
+            const body = { message: commitMessage, content: base64Content, sha: dataJsonSha };
             const response = await fetch(`https://api.github.com/repos/${repo}/contents/data.json`, {
                 method: 'PUT',
-                headers: {
-                    Authorization: `token ${token}`,
-                    'Content-Type': 'application/json'
-                },
+                headers: { Authorization: `token ${token}`, 'Content-Type': 'application/json' },
                 body: JSON.stringify(body)
             });
             if (!response.ok) {
                 const errorData = await response.json();
-                if (response.status === 409 || response.status === 422 ||
-                    (errorData.message && errorData.message.includes('does not match'))) {
+                if (response.status === 409 || response.status === 422 || (errorData.message && errorData.message.includes('does not match')))
                     throw new Error('SHA_MISMATCH');
-                }
-                throw new Error(errorData.message || 'Gagal menyimpan perubahan.');
+                throw new Error(errorData.message || 'Gagal menyimpan.');
             }
             const result = await response.json();
             dataJsonSha = result.content.sha;
         }
 
-        // ========== STATUS BAR ==========
         function setStatus(pesan, tipe) {
             const el = document.getElementById('status');
             el.textContent = pesan;
             el.className = 'status ' + tipe;
-            if (tipe === 'success') {
-                setTimeout(() => { if (el.textContent === pesan) el.textContent = ''; }, 5000);
-            }
+            if (tipe === 'success') setTimeout(() => { if (el.textContent === pesan) el.textContent = ''; }, 5000);
         }
 
-        // ========== POLLING UNTUK AUTO-RELOAD ==========
+        // ========== POLLING AUTO-RELOAD ==========
         function startPolling(intervalMs = 10000) {
-            stopPolling(); // hentikan sebelumnya
+            stopPolling();
             if (!autoReloadEnabled) return;
             pollingInterval = setInterval(async () => {
                 try {
@@ -384,41 +268,27 @@
                         console.log('🔁 Perubahan terdeteksi, memuat ulang...');
                         await muatDaftarLink();
                     }
-                } catch (err) {
-                    // Abaikan error polling
-                }
+                } catch (e) {}
             }, intervalMs);
             document.getElementById('autoReloadBadge').textContent = '🔄 Auto-Reload aktif';
             document.getElementById('btnToggleAutoReload').textContent = '⏸️ Matikan Auto';
         }
 
         function stopPolling() {
-            if (pollingInterval) {
-                clearInterval(pollingInterval);
-                pollingInterval = null;
-            }
+            if (pollingInterval) { clearInterval(pollingInterval); pollingInterval = null; }
             document.getElementById('autoReloadBadge').textContent = '⏸️ Auto-Reload mati';
             document.getElementById('btnToggleAutoReload').textContent = '▶️ Nyalakan Auto';
         }
 
-        // Tombol toggle auto-reload
         document.getElementById('btnToggleAutoReload').addEventListener('click', function() {
             autoReloadEnabled = !autoReloadEnabled;
-            if (autoReloadEnabled) {
-                startPolling();
-            } else {
-                stopPolling();
-            }
+            autoReloadEnabled ? startPolling() : stopPolling();
         });
 
-        // Tombol refresh manual
         document.getElementById('btnRefresh').addEventListener('click', function() {
             setStatus('Memperbarui data...', '');
             muatDaftarLink().then(() => setStatus('✅ Data terbaru dimuat.', 'success'));
         });
-
-        // Inisialisasi fitur auto-dash
-        setupAutoDash();
     </script>
 </body>
 </html>
