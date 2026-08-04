@@ -47,30 +47,30 @@
                 document.getElementById('judulHalaman').textContent = '404 - Tidak ada kode';
                 document.getElementById('pesan').textContent = 'Link tidak valid.';
                 document.getElementById('loader').style.display = 'none';
-                debugLog('Tidak ada kode di URL.');
+              //  debugLog('Tidak ada kode di URL.');
                 return;
             }
 
             const dataUrl = '/' + repo + '/data.json';
-            debugLog('Mengambil data dari: ' + dataUrl);
+            //debugLog('Mengambil data dari: ' + dataUrl);
 
             try {
                 const response = await fetch(dataUrl);
                 if (!response.ok) throw new Error('Status ' + response.status);
                 const db = await response.json();
-                debugLog('Data berhasil diambil. Isi: ' + JSON.stringify(db));
+                //debugLog('Data berhasil diambil. Isi: ' + JSON.stringify(db));
 
                 // Pencarian case-insensitive
                 const kodeLower = kodeInput.toLowerCase();
                 const matchedKey = Object.keys(db).find(key => key.toLowerCase() === kodeLower);
                 const urlTujuan = matchedKey ? db[matchedKey] : null;
 
-                debugLog('Kode input: ' + kodeInput + ' (lower: ' + kodeLower + ')');
-                debugLog('Kunci tersedia: ' + Object.keys(db).join(', '));
+                //debugLog('Kode input: ' + kodeInput + ' (lower: ' + kodeLower + ')');
+                //debugLog('Kunci tersedia: ' + Object.keys(db).join(', '));
                 if (matchedKey) {
-                    debugLog('Cocok dengan kunci: ' + matchedKey);
+                   // debugLog('Cocok dengan kunci: ' + matchedKey);
                 } else {
-                    debugLog('TIDAK ADA KUNCI YANG COCOK (case-insensitive)');
+                   // debugLog('TIDAK ADA KUNCI YANG COCOK (case-insensitive)');
                 }
 
                 if (urlTujuan) {
@@ -79,7 +79,7 @@
                     document.getElementById('pesan').textContent = `Mengalihkan ke: ${urlTujuan}`;
                     document.getElementById('linkManual').innerHTML = 
                         `<small>Jika tidak otomatis, <a href="${urlTujuan}" class="btn">Klik di sini</a></small>`;
-                    debugLog('Redirect dalam 1,5 detik...');
+                    //debugLog('Redirect dalam 1,5 detik...');
                     setTimeout(() => {
                         window.location.replace(urlTujuan);
                     }, 1500);
@@ -93,7 +93,7 @@
                 document.getElementById('judulHalaman').textContent = 'Terjadi Kesalahan';
                 document.getElementById('pesan').textContent = 'Tidak dapat menghubungi server data.';
                 document.getElementById('loader').style.display = 'none';
-                debugLog('ERROR: ' + err.message);
+                //debugLog('ERROR: ' + err.message);
             }
         })();
     </script>
