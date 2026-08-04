@@ -3,53 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    
-    <!-- Meta default (akan diperbarui dinamis oleh JavaScript) -->
     <title>Short Link - sort</title>
     <meta property="og:title" content="Short Link - sort">
     <meta property="og:description" content="Mengalihkan ke tautan asli...">
-    <meta property="og:image" content="https://user-images.githubusercontent.com/.../logo.png"> <!-- ganti dengan logo kamu -->
+    <meta property="og:image" content="https://user-images.githubusercontent.com/.../logo.png">
     <meta property="og:type" content="website">
     <meta name="twitter:card" content="summary">
     <meta name="twitter:title" content="Short Link - sort">
     <meta name="twitter:description" content="Mengalihkan ke tautan asli...">
-    
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            padding: 3em;
-            background: #f9f9f9;
-            color: #333;
-        }
-        .container {
-            max-width: 500px;
-            margin: auto;
-            background: white;
-            padding: 2em;
-            border-radius: 10px;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
-        }
-        .loader {
-            border: 4px solid #e0e0e0;
-            border-top: 4px solid #0366d6;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 1em auto;
-        }
+        body { font-family: Arial; text-align: center; padding: 2em; background: #f9f9f9; }
+        .container { max-width: 500px; margin: auto; background: white; padding: 2em; border-radius: 10px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+        .loader { border: 4px solid #e0e0e0; border-top: 4px solid #0366d6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 1em auto; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .btn {
-            display: inline-block;
-            margin-top: 1em;
-            padding: 0.5em 1.5em;
-            background: #0366d6;
-            color: white;
-            text-decoration: none;
-            border-radius: 4px;
-        }
-        .btn:hover { background: #024ea4; }
+        .btn { display: inline-block; margin-top: 1em; padding: 0.5em 1.5em; background: #0366d6; color: white; text-decoration: none; border-radius: 4px; }
+        #debugInfo { background: #f0f0f0; padding: 1em; margin-top: 1em; text-align: left; font-family: monospace; font-size: 0.9em; display: none; }
     </style>
 </head>
 <body>
@@ -58,72 +26,74 @@
         <p id="pesan">Mohon tunggu sebentar.</p>
         <div id="loader" class="loader"></div>
         <p id="linkManual"></p>
+        <div id="debugInfo"></div>
     </div>
 
     <script>
         (async function() {
-            // Ambil bagian path: /sort/Absensi-SekolahV4 -> ["sort","Absensi-SekolahV4"]
             const segmen = window.location.pathname.split('/').filter(Boolean);
-            const repo = segmen[0] || 'sort';   // sesuaikan dengan nama repo
+            const repo = segmen[0] || 'sort';
             const kodeInput = segmen[1] || '';
+
+            // Fungsi debug
+            function debugLog(text) {
+                console.log(text);
+                const debugEl = document.getElementById('debugInfo');
+                debugEl.style.display = 'block';
+                debugEl.innerHTML += text + '<br>';
+            }
 
             if (!kodeInput) {
                 document.getElementById('judulHalaman').textContent = '404 - Tidak ada kode';
                 document.getElementById('pesan').textContent = 'Link tidak valid.';
                 document.getElementById('loader').style.display = 'none';
+                debugLog('Tidak ada kode di URL.');
                 return;
             }
 
             const dataUrl = '/' + repo + '/data.json';
+            debugLog('Mengambil data dari: ' + dataUrl);
 
             try {
                 const response = await fetch(dataUrl);
-                if (!response.ok) throw new Error('Gagal memuat data (status ' + response.status + ')');
+                if (!response.ok) throw new Error('Status ' + response.status);
                 const db = await response.json();
+                debugLog('Data berhasil diambil. Isi: ' + JSON.stringify(db));
 
-                // === PENCARIAN CASE-INSENSITIVE ===
+                // Pencarian case-insensitive
                 const kodeLower = kodeInput.toLowerCase();
-                // Cari kunci di db yang lowercase-nya sama dengan kodeLower
                 const matchedKey = Object.keys(db).find(key => key.toLowerCase() === kodeLower);
                 const urlTujuan = matchedKey ? db[matchedKey] : null;
 
-                if (urlTujuan) {
-                    // === Perbarui metadata dinamis (untuk bot yang bisa mengeksekusi JS) ===
-                    const displayKode = matchedKey; // gunakan kunci asli untuk tampilan
-                    document.title = `${displayKode} - Short Link`;
-                    const ogTitle = document.querySelector('meta[property="og:title"]');
-                    const ogDesc = document.querySelector('meta[property="og:description"]');
-                    const twTitle = document.querySelector('meta[name="twitter:title"]');
-                    const twDesc = document.querySelector('meta[name="twitter:description"]');
-                    if (ogTitle) ogTitle.setAttribute('content', `${displayKode} - Short Link`);
-                    if (ogDesc) ogDesc.setAttribute('content', `Klik untuk membuka ${urlTujuan}`);
-                    if (twTitle) twTitle.setAttribute('content', `${displayKode} - Short Link`);
-                    if (twDesc) twDesc.setAttribute('content', `Klik untuk membuka ${urlTujuan}`);
+                debugLog('Kode input: ' + kodeInput + ' (lower: ' + kodeLower + ')');
+                debugLog('Kunci tersedia: ' + Object.keys(db).join(', '));
+                if (matchedKey) {
+                    debugLog('Cocok dengan kunci: ' + matchedKey);
+                } else {
+                    debugLog('TIDAK ADA KUNCI YANG COCOK (case-insensitive)');
+                }
 
-                    // Tampilkan halaman perantara
-                    document.getElementById('judulHalaman').textContent = `🔗 ${displayKode}`;
+                if (urlTujuan) {
+                    document.title = `${matchedKey} - Short Link`;
+                    document.getElementById('judulHalaman').textContent = `🔗 ${matchedKey}`;
                     document.getElementById('pesan').textContent = `Mengalihkan ke: ${urlTujuan}`;
                     document.getElementById('linkManual').innerHTML = 
                         `<small>Jika tidak otomatis, <a href="${urlTujuan}" class="btn">Klik di sini</a></small>`;
-
-                    // Redirect setelah 1,5 detik
+                    debugLog('Redirect dalam 1,5 detik...');
                     setTimeout(() => {
                         window.location.replace(urlTujuan);
                     }, 1500);
                 } else {
-                    // Kode tidak ditemukan
                     document.getElementById('judulHalaman').textContent = '404 - Tidak Ditemukan';
                     document.getElementById('pesan').textContent = 
                         `Maaf, link pendek "/${kodeInput}" tidak tersedia.`;
                     document.getElementById('loader').style.display = 'none';
-                    document.getElementById('linkManual').innerHTML = 
-                        '<small><a href="/' + repo + '">Kembali ke beranda</a></small>';
                 }
             } catch (err) {
                 document.getElementById('judulHalaman').textContent = 'Terjadi Kesalahan';
                 document.getElementById('pesan').textContent = 'Tidak dapat menghubungi server data.';
                 document.getElementById('loader').style.display = 'none';
-                console.error('Error:', err);
+                debugLog('ERROR: ' + err.message);
             }
         })();
     </script>
